@@ -15,7 +15,7 @@ func genRandomDurations(n, rng int) []time.Duration {
 	return ret
 }
 
-var benchJobs = genRandomDurations(1000, 20)
+var benchJobs = genRandomDurations(100, 20)
 
 func BenchmarkDeferGroup(b *testing.B) {
 	for i := 0; i < b.N; i++ {

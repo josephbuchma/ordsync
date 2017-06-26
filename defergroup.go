@@ -2,6 +2,10 @@
 // from concurrent goroutines in particular order.
 package ordsync
 
+import (
+	"sync"
+)
+
 // DeferGroup is a chain of Deferred functions
 // that are executed in the order they were created
 type DeferGroup struct {
@@ -12,14 +16,15 @@ type DeferGroup struct {
 // First Deferred function is called immediately
 func (f *DeferGroup) Wait() {
 	if f.last != nil {
-		<-f.last.done
+		f.last.wait()
 	}
 }
 
 // Defer returns new Deferred linked to the tail of this DeferGroup chain.
 func (f *DeferGroup) Defer() Deferred {
-	done := make(chan struct{})
-	ret := Deferred{f.last, done}
+	m := &sync.Mutex{}
+	m.Lock()
+	ret := Deferred{f.last, m}
 	f.last = &ret
 	return ret
 }
@@ -28,21 +33,25 @@ func (f *DeferGroup) Defer() Deferred {
 // Deferred is a link in DeferGroup chain. Deferred must be created by DeferGroup.DeferGroup() call.
 type Deferred struct {
 	prev *Deferred
-	done chan struct{}
+	m    *sync.Mutex
+}
+
+func (d *Deferred) wait() {
+	d.m.Lock()
 }
 
 // Do runs given function only after previous deferred function is done
 // (until that time it blocks)
 // IMPORTANT: can be called only once, panics on second call
 func (d *Deferred) Do(f func()) {
-	if d.done == nil {
+	if d.m == nil {
 		panic("Deferred.Do can be called only once")
 	}
 	if d.prev != nil {
-		<-d.prev.done
+		d.prev.wait()
 	}
 	f()
-	close(d.done)
-	d.done = nil
+	d.m.Unlock()
+	d.m = nil
 	d.prev = nil
 }
