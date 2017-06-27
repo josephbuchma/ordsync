@@ -21,7 +21,7 @@ func main() {
 	jobs := []time.Duration{4, 15, 3, 7, 1, 3, 23, 10, 5}
 	results := []time.Duration{}
 
-	dg := ordsync.DeferGroup{}
+	dg := ordsync.DeferQueue{}
 	for _, j := range jobs {
 		j := j
 		deferred := dg.Defer()

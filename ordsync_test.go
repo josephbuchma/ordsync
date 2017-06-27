@@ -22,7 +22,7 @@ func BenchmarkDeferGroup(b *testing.B) {
 		jobs := benchJobs
 		results := []time.Duration{}
 
-		dg := DeferGroup{}
+		dg := DeferQueue{}
 		for _, j := range jobs {
 			j := j
 			deferred := dg.Defer()
@@ -38,7 +38,7 @@ func BenchmarkDeferGroup(b *testing.B) {
 	}
 }
 
-func BenchmarkFanOut(b *testing.B) {
+func BenchmarkFanIn(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		jobs := benchJobs
 		results := []time.Duration{}
@@ -63,7 +63,7 @@ func TestDeferGroup(t *testing.T) {
 		jobs := []time.Duration{4, 15, 3, 7, 1, 3, 23, 10, 5}
 		results := []time.Duration{}
 
-		dg := DeferGroup{}
+		dg := DeferQueue{}
 		for _, j := range jobs {
 			j := j
 			deferred := dg.Defer()
@@ -87,7 +87,7 @@ func TestDeferGroup(t *testing.T) {
 			t.Error("Expected panic")
 		}
 	}()
-	dfr := DeferGroup{}
+	dfr := DeferQueue{}
 	deferred := dfr.Defer()
 	deferred.Do(func() {})
 	deferred.Do(func() {})

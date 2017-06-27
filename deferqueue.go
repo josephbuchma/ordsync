@@ -2,22 +2,22 @@
 // from concurrent goroutines in particular order.
 package ordsync
 
-// DeferGroup is a chain of Deferred functions
-// that are executed in the order they were created
-type DeferGroup struct {
+// DeferQueue is a chain of Deferred functions
+// that are executed synchronously in the order they were created
+type DeferQueue struct {
 	last *Deferred
 }
 
 // Wait blocks until last Deferred created by Defer method is done
 // First Deferred function is called immediately
-func (f *DeferGroup) Wait() {
+func (f *DeferQueue) Wait() {
 	if f.last != nil {
 		<-f.last.done
 	}
 }
 
-// Defer returns new Deferred linked to the tail of this DeferGroup chain.
-func (f *DeferGroup) Defer() Deferred {
+// Defer returns new Deferred linked to the tail of this DeferQueue chain.
+func (f *DeferQueue) Defer() Deferred {
 	done := make(chan struct{})
 	ret := Deferred{f.last, done}
 	f.last = &ret
@@ -25,7 +25,7 @@ func (f *DeferGroup) Defer() Deferred {
 }
 
 // Deferred represents function that is always executed in the order it was created.
-// Deferred is a link in DeferGroup chain. Deferred must be created by DeferGroup.DeferGroup() call.
+// Deferred is a link in DeferQueue chain. Deferred must be created by DeferQueue.Defer() call.
 type Deferred struct {
 	prev *Deferred
 	done chan struct{}
