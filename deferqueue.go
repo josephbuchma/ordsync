@@ -2,6 +2,8 @@
 // from concurrent goroutines in particular order.
 package ordsync
 
+import "runtime"
+
 // DeferQueue is a chain of Deferred functions
 // that are executed synchronously in the order they were created
 type DeferQueue struct {
@@ -45,4 +47,16 @@ func (d *Deferred) Do(f func()) {
 	close(d.done)
 	d.done = nil
 	d.prev = nil
+}
+
+// Skip running this Deferred func
+func (d *Deferred) Skip() {
+	d.Do(func() {})
+}
+
+// Goexit skips this Deferred func
+// and terminates current goroutine.
+func (d *Deferred) Goexit() {
+	d.Skip()
+	runtime.Goexit()
 }
